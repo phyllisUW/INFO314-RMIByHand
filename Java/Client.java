@@ -1,23 +1,65 @@
+import java.io.*;
+import java.net.Socket;
+
 public class Client {
 
     /**
      * This method name and parameters must remain as-is
      */
     public static int add(int lhs, int rhs) {
-        return -1;
+        return sendRequest("ADD", lhs, rhs);
     }
     /**
      * This method name and parameters must remain as-is
      */
     public static int divide(int num, int denom) {
-        return -1;
+        return sendRequest("DIVIDE", num, denom);
     }
     /**
      * This method name and parameters must remain as-is
      */
     public static String echo(String message) {
-        return "";
+        return sendRequest("ECHO", message);
     }
+
+    private static int sendRequest(String method, int... args) {
+        try (Socket sock = new Socket("localhost", PORT);
+             PrintWriter output = new PrintWriter(sock.getOutputStream(), true);
+             BufferedReader input = new BufferedReader(new InputStreamReader(sock.getInputStream()))) {
+    
+            output.println(method);
+            for (int arg : args) {
+                output.println(arg);
+            }
+    
+            String response = input.readLine();
+    
+            if (method.equals("DIVIDE") && response.equals("ArithmeticException")) {
+                throw new ArithmeticException();
+            }
+    
+            return Integer.parseInt(response);
+        } catch (IOException ex) {
+            System.err.println("Error connecting to the server: " + ex.getMessage());
+            return -1;
+        }
+    }
+    
+    private static String sendRequest(String method, String message) {
+        try (Socket sock = new Socket("localhost", PORT);
+             PrintWriter output = new PrintWriter(sock.getOutputStream(), true);
+             BufferedReader input = new BufferedReader(new InputStreamReader(sock.getInputStream()))) {
+
+            output.println(method);
+            output.println(message);
+
+            return input.readLine();
+        } catch (IOException ex) {
+            System.err.println("Error connecting to the server: " + ex.getMessage());
+            return "";
+        }
+    }
+
 
     // Do not modify any code below this line
     // --------------------------------------
